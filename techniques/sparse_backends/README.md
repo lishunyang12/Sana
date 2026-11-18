@@ -19,7 +19,7 @@ Sol-Attn is a training-free sparse attention method for accelerating image
 and video generation. It performs dynamic block routing during online softmax
 and reuses proxy scores to approximate unselected blocks, avoiding a
 materialized routing map while preserving visual quality. CuTe DSL kernels
-support SM90, SM100, and SM120; SM80 and SM89 use Triton kernels.
+support SM90, SM100, SM103, and SM120; SM80 and SM89 use Triton kernels.
 
 ## Requirements
 
@@ -48,6 +48,7 @@ The public `sol_attn(...)` API selects the implementation from `q.device`:
 |---|---|---|
 | SM90 | H100 | CuTe DSL |
 | SM100 | GB200 | CuTe DSL |
+| SM103 | B300 / GB300 | CuTe DSL (SM100 kernel family) |
 | SM120 | RTX 5090 | CuTe DSL |
 | SM80 / SM89 | A100 / RTX 4090 | Triton |
 
@@ -135,7 +136,7 @@ protected[0] = protected[-1] = True  # Example: disjoint text/audio blocks.
 out = sol_attn(q, k, v, exact_block_mask=protected)
 ```
 
-This option is supported by the CuTe SM90/SM100/SM120 kernels (including SM90
+This option is supported by the CuTe SM90/SM100/SM103/SM120 kernels (including SM90
 KV splitting) and the Triton implementation. It can be combined with the
 legacy KV sink range. Omitting it preserves the original API behavior.
 Mask values remain runtime inputs and can change without recompilation.
@@ -150,7 +151,7 @@ and realized sparsity.
 out = sol_attn(q, k, v, tau=1.0, kv_splits=4)
 ```
 
-B200, RTX 5090, and Triton currently use `kv_splits=1`.
+B200, B300 / GB300, RTX 5090, and Triton currently use `kv_splits=1`.
 
 ## Sol-Engine integration
 

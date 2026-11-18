@@ -106,8 +106,8 @@ into a model runtime through env-gated hooks and powers the optimization stacks 
 [**MiniMax-H3**](models/minimax_h3/). The HunyuanVideo and Wan2.1 stacks reach
 **~5.03×** and **~3.48×** end-to-end speedup, respectively.
 
-Backend selection is automatic: H100 (SM90), B200 (SM100), and RTX 5090
-(SM120) use their optimized CuTe DSL kernels when CuTe is installed. Older
+Backend selection is automatic: H100 (SM90), B200 (SM100), B300 / GB300
+(SM103), and RTX 5090 (SM120) use their optimized CuTe DSL kernels when CuTe is installed. Older
 supported GPUs such as A100 (SM80) and RTX 4090 (SM89), or installations
 without CuTe DSL, use the portable Triton implementation. Model call sites do
 not need architecture-specific changes. See the

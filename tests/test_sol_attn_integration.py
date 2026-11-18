@@ -84,26 +84,31 @@ def test_sol_attn_backend_dispatch_contract() -> None:
         if isinstance(node, ast.FunctionDef)
         and node.name == "_backend_for_arch"
     )
-    namespace = {
-        "_CUTE_BACKENDS": {
-            (9, 0): "cute_sm90",
-            (10, 0): "cute_sm100",
-            (12, 0): "cute_sm120",
-        },
-        "_cute_runtime_available": lambda: True,
-    }
+    backend_map = next(
+        node
+        for node in tree.body
+        if isinstance(node, ast.Assign)
+        and any(
+            isinstance(target, ast.Name) and target.id == "_CUTE_BACKENDS"
+            for target in node.targets
+        )
+    )
+    namespace = {"_cute_runtime_available": lambda: True}
     dispatch_module = ast.fix_missing_locations(
-        ast.Module(body=[dispatch], type_ignores=[])
+        ast.Module(body=[backend_map, dispatch], type_ignores=[])
     )
     exec(compile(dispatch_module, str(interface), "exec"), namespace)
     backend_for_arch = namespace["_backend_for_arch"]
     assert backend_for_arch((9, 0), cute_available=True) == "cute_sm90"
     assert backend_for_arch((10, 0), cute_available=True) == "cute_sm100"
+    assert backend_for_arch((10, 3), cute_available=True) == "cute_sm100"
     assert backend_for_arch((12, 0), cute_available=True) == "cute_sm120"
     assert backend_for_arch((8, 0), cute_available=True) == "triton"
     assert backend_for_arch((8, 9), cute_available=True) == "triton"
     assert backend_for_arch((9, 0), cute_available=False) == "triton"
     assert backend_for_arch((10, 0), cute_available=False) == "triton"
+    assert backend_for_arch((10, 3), cute_available=False) == "triton"
+    assert backend_for_arch((10, 1), cute_available=True) == "triton"
     assert backend_for_arch((12, 0), cute_available=False) == "triton"
 
     triton_forward = (
