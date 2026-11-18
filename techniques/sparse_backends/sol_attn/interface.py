@@ -239,6 +239,7 @@ def _sol_attn_cute(
     sink_start,
     exact_block_mask,
 ):
+    from .common import to_cute_tensor
     from .preprocess import prepare
 
     batch, tokens, heads, _ = q.shape
@@ -260,10 +261,11 @@ def _sol_attn_cute(
         )
         stream = _stream(q.device)
         key = (q.device.index, arch, batch, tokens, heads, kv_splits, exact_block_mask is not None)
-        # Reinterpret the bool storage without a copy for CuTe's DLPack bridge.
+        # Bool views can start at any byte offset; do not assume 16-byte alignment.
+        # Reinterpret storage without a copy for CuTe's DLPack bridge.
         mask_arg = (
             None if exact_block_mask is None
-            else _to_cute_tensors([exact_block_mask.view(torch.uint8)])[0]
+            else to_cute_tensor(exact_block_mask.view(torch.uint8), assumed_align=1)
         )
 
         if arch == (9, 0):
